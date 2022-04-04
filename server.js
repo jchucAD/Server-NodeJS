@@ -14,6 +14,11 @@ const URI = process.env.MONGODB
 
 const bodyParser = require('body-parser')
 app.use(bodyParser.json())
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+})
 
 //définition des appels des APIs CRUD sur USER
 //app.use(routes)
@@ -24,7 +29,10 @@ app.post('/adduser', async (req, res) => {
 })
 
 app.delete('/deleteuser/:id', async (req, res) => {
-    await User.deleteOne({ _id: req.params.id })
+    const delUser = await User.deleteOne({ _id: req.params.id })
+    //if (!delUser) {
+    //    res.status(404).send("Aucune entrée trouvée avec  id:" + req.params.id)
+    //}
     res.json({ message: "User supprimé avec succes", userId: req.params.id })
 })
 
@@ -36,6 +44,7 @@ app.put('/updateuser/:id', async (req, res) => {
 app.get('/getusers', async (req, res) => {
     const users = await User.find()
     res.json({ users: users })
+
 })
 
 // démarrage du serveur
