@@ -3,10 +3,11 @@ const { Schema } = mongoose
 
 const schema = new Schema({
     username: String,
+    age: String,
     email: String,
     password: String,
     phone: String,
-    adresse: String
+    address: String
 });
 
 module.exports = mongoose.model("User", schema)
