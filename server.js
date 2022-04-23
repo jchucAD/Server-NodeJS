@@ -1,7 +1,5 @@
 const express = require('express')
-// import express from 'express'
 const mongoose = require('mongoose')
-const User = require('./modeles/user.js')
 const dotenv = require('dotenv')
 //initialise les variable depuis .env
 dotenv.config()
@@ -9,23 +7,89 @@ const app = express()
 const middleware = require('./middleware')
 const jwt = require('jsonwebtoken')
 
+const strategy = require('passport-local')
+const passport = require('passport')
+passport.use(
+    'signup',
+    new strategy({
+        usernameField: 'email',
+        passwordField: 'password'
+    },
+        async (email, password, done) => {
+            try {
+                const user = await User.create({ email, password })
+                console.log('User créé auth')
+                return done(null, user)
+            }
+            catch (error) { return done(error) }
+        }
+    )
+)
+
+passport.use(
+    'login',
+    new strategy({
+        usernameField: 'email',
+        passwordField: 'password'
+    },
+        async (email, password, done) => {
+            try {
+                const user = await User.findOne({ email, password })
+                if (!user) {
+                    return done(null, false, { message: 'USer non trouvé.' })
+                }
+                const validate = await user.isValidPwd(password)
+                if (!validate) { return (null, false, { message: 'Mauvais mot de passe' }) }
+                return (null, true, { message: 'mot de passe OK' })
+            }
+            catch (error) { return done(error) }
+        }
+    )
+)
 const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
-
-const PORT = process.env.PORT || 30000
+const PORT = process.env.PORTSERVER || 4000
 const URI = process.env.MONGODB
+
+const User = require('./modeles/user.js')
+const user = require('./modeles/user.js')
 
 app.use(function (req, res, next) {
     res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT, DELETE");
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT, DELETE, UPDATE");
     res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
     next();
 })
 
-
 //définition des appels des APIs CRUD sur USER
 //app.use(routes)
+
+app.post('/signup',
+    //console.log('req body :', req.body)
+    passport.authenticate('signup', { session: false }),
+    async (req, res, next) => {
+        res.json({ message: 'signup ok!', user: user.req })
+    }
+)
+
+app.post('/login', (req, res, next) => {
+    passport.authenticate('login', async (err, user) => {
+        try {
+            if (err || !user) {
+                const error = new error('Une erreur est survenue.')
+                return next(user)
+            }
+            req.login(user, { session: false }, async error => {
+                if (error) return next(error)
+                const body = { id: user._id, email: user.email }
+                res.json(body)
+            })
+        } catch (error) {
+            return (error)
+        }
+    })(req, res, next)
+})
 
 app.post('/adduser', async (req, res) => {
     //console.log('req body :', req.body)
@@ -33,10 +97,10 @@ app.post('/adduser', async (req, res) => {
     res.json({ message: "User ajouté avec succes", user: newUser })
 })
 
+/*
 app.post('/login', async (req, res) => {
-    const connectedUser = await User.findOne({
-        password: req.body.password, email: req.body.email
-    })
+    const connectedUser = await User.findOne({        password: req.body.password, email: req.body.email    })
+    
     if (connectedUser) {
         const token = jwt.sign({ userId: connectedUser._id }, process.env.JWTPRIVATEKEY, { expiresIn: '24h' })
         res.status(200).json({ user: connectedUser, token })
@@ -44,6 +108,8 @@ app.post('/login', async (req, res) => {
         res.status(401).json({ message: "Utilisateur n'existe pas." })
     }
 })
+*/
+
 
 app.delete('/deleteuser/:id', middleware, async (req, res) => {
     try {
@@ -60,7 +126,11 @@ app.put('/updateuser/:id', async (req, res) => {
 })
 
 app.get('/getusers', async (req, res) => {
+    //tous les users
     const users = await User.find()
+
+    //avec des filtres
+    //.find({ size: 'small' }).where('createdDate').gt(oneYearAgo).exec(callback)
     res.json({ users: users })
 
 })
@@ -72,6 +142,6 @@ app.listen(PORT, async () => {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-    console.log('Application server ready port 4000.')
+    console.log('Application server ready port ', PORT)
 })
 

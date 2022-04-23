@@ -22,26 +22,3 @@ module.exports = (req, res, next) => {
     res.status(401).json({ error: 'Invalid token/user!' });
   }
 }
-
-//stocker le token dans le locale stoge aprés le login
-//a chque requete envoyer le token dans headers autorisation qui est stocké dans  le locale storge
-
-/*
-mport axios from "axios";
-export default axios.create({
-  baseURL: "http://localhost:8080/api",
-  headers: {
-    "Content-type": "application/json",
-"autorisation ": "brearer token",
-  }
-})
-
-import axios from "axios";
-export default axios.create({
-  baseURL: "http://localhost:8080/api",
-  headers: {
-    "Content-type": "application/json",
-"autorisation ": "brearer "+localestorge.getItem("token")
-  }
-});
-*/
