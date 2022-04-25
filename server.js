@@ -53,12 +53,13 @@ const PORT = process.env.PORTSERVER || 4000
 const URI = process.env.MONGODB
 
 const User = require('./modeles/user.js')
-const user = require('./modeles/user.js')
+const Book = require('./modeles/livre.js')
 
 app.use(function (req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT, DELETE, UPDATE");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+    res.header("Access-Control-Allow-Origin", "*")
+    res.header("Vary", "Origin")
+    res.header("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT,DELETE,UPDATE")
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization")
     next();
 })
 
@@ -73,34 +74,19 @@ app.post('/signup',
     }
 )
 
-app.post('/login', (req, res, next) => {
-    passport.authenticate('login', async (err, user) => {
-        try {
-            if (err || !user) {
-                const error = new error('Une erreur est survenue.')
-                return next(user)
-            }
-            req.login(user, { session: false }, async error => {
-                if (error) return next(error)
-                const body = { id: user._id, email: user.email }
-                res.json(body)
-            })
-        } catch (error) {
-            return (error)
-        }
-    })(req, res, next)
-})
-
-app.post('/adduser', async (req, res) => {
+app.post('/adduser', middleware, async (req, res) => {
     //console.log('req body :', req.body)
     const newUser = await User.create(req.body)
+
+    //créé aussi un livre
+    const newBook = await Book.create({ titre: "Danse avec les loups", auteur: "Moi", date: "23/21/1967" })
     res.json({ message: "User ajouté avec succes", user: newUser })
 })
 
-/*
+
 app.post('/login', async (req, res) => {
-    const connectedUser = await User.findOne({        password: req.body.password, email: req.body.email    })
-    
+    const connectedUser = await User.findOne({ password: req.body.password, email: req.body.email })
+    //console.log('connectedUSer', connectedUser)
     if (connectedUser) {
         const token = jwt.sign({ userId: connectedUser._id }, process.env.JWTPRIVATEKEY, { expiresIn: '24h' })
         res.status(200).json({ user: connectedUser, token })
@@ -108,12 +94,11 @@ app.post('/login', async (req, res) => {
         res.status(401).json({ message: "Utilisateur n'existe pas." })
     }
 })
-*/
-
 
 app.delete('/deleteuser/:id', middleware, async (req, res) => {
     try {
         const delUser = await User.deleteOne({ _id: req.params.id })
+
         res.json({ message: "User supprimé avec succes", userId: req.params.id })
     } catch (error) {
         res.json({ message: "Erreur : user non trouvé", userId: req.params.id })
@@ -142,6 +127,6 @@ app.listen(PORT, async () => {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-    console.log('Application server ready port ', PORT)
+    console.log('Application server ready port: ', PORT)
 })
 

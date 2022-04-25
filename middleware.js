@@ -8,7 +8,7 @@ module.exports = (req, res, next) => {
     const decodedToken = jwt.verify(token, "JWTPRIVATEKEY");
     const userId = decodedToken.userId;
 
-    console.log('UserId', userId)
+    //console.log('UserId', userId)
     req.auth = { userId };
     if (!userId) {
       res.status(401).json({
