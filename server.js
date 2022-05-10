@@ -123,10 +123,11 @@ app.get('/getusers', async (req, res) => {
 // démarrage du serveur
 app.listen(PORT, async () => {
     //connexion Mongoose
+    console.log('Application server port procesing... : ', PORT, 'BD :', URI)
     await mongoose.connect(URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
     })
-    console.log('Application server ready port: ', PORT)
+    console.log('Application server ready port: ', PORT, 'BD :', URI)
 })
 
