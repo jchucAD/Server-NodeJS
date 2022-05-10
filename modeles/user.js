@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema({
         ville: String
     },
     address: String
+    //si je modifie ADDRESS alors qu'il y a des données??
 })
 
 userSchema.pre('save', async function (next) {
