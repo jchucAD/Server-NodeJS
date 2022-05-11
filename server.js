@@ -49,7 +49,7 @@ passport.use(
 const bodyParser = require('body-parser')
 app.use(bodyParser.json())
 
-const PORT = process.env.PORTSERVER || 4000
+const PORT = process.env.PORTSERVER || 80
 const URI = process.env.MONGODB
 
 const User = require('./modeles/user.js')
@@ -123,7 +123,7 @@ app.get('/getusers', async (req, res) => {
 // démarrage du serveur
 app.listen(PORT, async () => {
     //connexion Mongoose
-    console.log('Application server port procesing... : ', PORT, 'BD :', URI)
+    console.log('Application server port processing... : ', PORT, 'BD :', URI)
     await mongoose.connect(URI, {
         useNewUrlParser: true,
         useUnifiedTopology: true,
